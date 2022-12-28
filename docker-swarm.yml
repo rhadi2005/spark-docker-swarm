@@ -1,9 +1,14 @@
 version: '3.8'
 
+# command to build the container image & upload to docker hub
+#docker build -t rhadi2005/spark-swarm:3.1.2 .
+#docker login -u rhadi2005
+#docker push rhadi2005/spark-swarm:3.1.2
+
 services:
 
   master:
-    image: mjhea0/spark:3.0.2
+    image: rhadi2005/spark-swarm:3.1.2
     command: bin/spark-class org.apache.spark.deploy.master.Master -h master
     hostname: master
     environment:
@@ -17,7 +22,7 @@ services:
       - 8080:8080
 
   worker:
-    image: mjhea0/spark:3.0.2
+    image: rhadi2005/spark-swarm:3.1.2
     command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
     hostname: worker
     environment:

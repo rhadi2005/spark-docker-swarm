@@ -10,7 +10,10 @@ TOKEN=`docker swarm join-token worker | grep token | awk '{ print $5 }'`
 echo "TOKEN={$TOKEN}"
 
 #kill all containers
-ssh -o "StrictHostKeyChecking no" -i ~/.ssh/key-vmfe.pem cloud@${WORKER_IP} "docker kill -vf $(docker ps -aq)"
+ssh -o "StrictHostKeyChecking no" -i ~/.ssh/key-vmfe.pem cloud@${WORKER_IP} "docker kill $(docker ps -aq)"
 
 #remotely add worker to docker swarm stack
 ssh -o "StrictHostKeyChecking no" -i ~/.ssh/key-vmfe.pem cloud@${WORKER_IP} "docker swarm join --token ${TOKEN} ${MANAGER_IP}"
+
+#list docker swarm stack
+docker node ls

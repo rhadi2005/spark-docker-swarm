@@ -27,6 +27,8 @@ RUN curl -sL --retry 3 --insecure \
   && ln -s $JAVA_HOME /usr/java \
   && rm -rf $JAVA_HOME/man
 
+#install spark-3.1.2-bin-hadoop3.2
+
 # HADOOP
 ENV HADOOP_VERSION 3.2.2
 ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
@@ -40,7 +42,9 @@ RUN curl -sL --retry 3 \
  && chown -R root:root $HADOOP_HOME
 
 # SPARK
-ENV SPARK_VERSION 3.0.2
+#ENV SPARK_VERSION 3.0.2
+ENV SPARK_VERSION 3.1.2
+
 ENV SPARK_PACKAGE spark-${SPARK_VERSION}-bin-without-hadoop
 ENV SPARK_HOME /usr/spark-${SPARK_VERSION}
 ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"
