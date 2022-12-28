@@ -1,35 +1,62 @@
-FROM debian:jessie
+#FROM debian:jessie
+FROM debian:bullseye
 
-RUN apt-get update \
-  && apt-get install -y curl unzip \
-    python3 python3-setuptools \
-  && ln -s /usr/bin/python3 /usr/bin/python \
-  && easy_install3 pip py4j \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get upgrade -y
+
+RUN apt-get install -y \
+        net-tools \
+        iputils-ping \
+        dnsutils \
+        apt-utils \
+        vim \
+        curl \
+        wget \
+        git \
+        unzip \
+        zip
+
+RUN apt-get install -y python3 r-base pip && \
+    ln -s /usr/bin/python3 /usr/bin/python
+
+# RUN apt-get install -y python3 python3-setuptools \
+#   && ln -s /usr/bin/python3 /usr/bin/python \
+#   && easy_install3 pip py4j \
+
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONHASHSEED 0
 ENV PYTHONIOENCODING UTF-8
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 
+WORKDIR /tmp
+
 # JAVA
 ARG JAVA_MAJOR_VERSION=8
-ARG JAVA_UPDATE_VERSION=131
+#ARG JAVA_UPDATE_VERSION=131
+ARG JAVA_UPDATE_VERSION=351
 ARG JAVA_BUILD_NUMBER=11
 ENV JAVA_HOME /usr/jdk1.${JAVA_MAJOR_VERSION}.0_${JAVA_UPDATE_VERSION}
 
 ENV PATH $PATH:$JAVA_HOME/bin
-RUN curl -sL --retry 3 --insecure \
-  --header "Cookie: oraclelicense=accept-securebackup-cookie;" \
-  "http://download.oracle.com/otn-pub/java/jdk/${JAVA_MAJOR_VERSION}u${JAVA_UPDATE_VERSION}-b${JAVA_BUILD_NUMBER}/d54c1d3a095b4ff2b6607d096fa80163/server-jre-${JAVA_MAJOR_VERSION}u${JAVA_UPDATE_VERSION}-linux-x64.tar.gz" \
-  | gunzip \
-  | tar x -C /usr/ \
-  && ln -s $JAVA_HOME /usr/java \
-  && rm -rf $JAVA_HOME/man
+# RUN curl -sL --retry 3 --insecure \
+#   --header "Cookie: oraclelicense=accept-securebackup-cookie;" \
+#   "http://download.oracle.com/otn-pub/java/jdk/${JAVA_MAJOR_VERSION}u${JAVA_UPDATE_VERSION}-b${JAVA_BUILD_NUMBER}/d54c1d3a095b4ff2b6607d096fa80163/server-jre-${JAVA_MAJOR_VERSION}u${JAVA_UPDATE_VERSION}-linux-x64.tar.gz" \
 
-#install spark-3.1.2-bin-hadoop3.2
+#hardcode url to download JRE Version 8 Update 351, 18 octobre 2022 
+RUN echo "JAVA_HOME=${JAVA_HOME}" && \
+    wget "https://javadl.oracle.com/webapps/download/AutoDL?BundleId=247127_10e8cce67c7843478f41411b7003171c" -O jre-8u351-linux-x64.tar.gz && \
+    gunzip jre-8u351-linux-x64.tar.gz && \
+    tar xf jre-8u351-linux-x64.tar && \ 
+    mv jre1.8.0_351 /usr/ && \
+    ln -s $JAVA_HOME /usr/java && \
+    rm -rf $JAVA_HOME/man
 
-# HADOOP
+
+# #install spark-3.1.2-bin-hadoop3.2
+
+# # HADOOP
 ENV HADOOP_VERSION 3.2.2
 ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
 ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
