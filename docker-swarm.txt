@@ -1,0 +1,72 @@
+#docker swarm for spark benchmark
+
+docker stack rm rf-bench
+docker swarm leave --force
+
+./scripts/fe-create.sh
+./scripts/fe-addnode.sh <ip>
+
+./scripts/fe-addnode.sh 10.50.0.141
+./scripts/fe-addnode.sh 10.50.0.207
+./scripts/fe-addnode.sh 10.50.0.70
+./scripts/fe-addnode.sh 10.50.0.202
+./scripts/fe-addnode.sh 10.50.0.61
+./scripts/fe-addnode.sh 10.50.0.160
+
+./scripts/fe-ps.sh 10.50.0.141
+./scripts/fe-ps.sh 10.50.0.207
+./scripts/fe-ps.sh 10.50.0.70
+./scripts/fe-ps.sh 10.50.0.202
+./scripts/fe-ps.sh 10.50.0.61
+./scripts/fe-ps.sh 10.50.0.160
+docker ps
+
+./scripts/fe-rsh.sh 10.50.0.141 bash
+
+docker service scale rf-bench_worker=26
+docker service scale rf-bench_master=1
+
+docker stack services rf-bench
+
+docker service logs --follow rf-bench_master
+docker service logs --follow rf-bench_worker
+
+
+# build docker swarm stack 
+# ========================
+docker stack rm rf-bench
+docker swarm leave --force
+docker swarm init
+docker node ls
+docker network ls
+
+export EXTERNAL_IP=$(hostname -i) && echo ${EXTERNAL_IP}
+
+docker stack deploy --compose-file docker-swarm.yml rf-bench 
+docker stack services rf-bench
+
+docker service logs --follow rf-bench_master
+docker service logs --follow rf-bench_worker
+
+docker service scale rf-bench_worker=16
+
+
+========== network debug ===============
+
+docker network ls
+docker service inspect rf-bench_master
+
+
+===== container placement =============
+
+#https://hub.docker.com/r/davideshay/dockerautolabel
+affinity, to put containers on the same host
+
+#spark : to release swarm manager node for spark master 
+
+        deploy:
+            placement:
+               constraints:
+                  - node.role==manager
+
+                

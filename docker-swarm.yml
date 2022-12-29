@@ -9,28 +9,96 @@ services:
 
   master:
     image: rhadi2005/spark-swarm:3.1.2
-    command: bin/spark-class org.apache.spark.deploy.master.Master -h master
+    command: bin/spark-class org.apache.spark.deploy.master.Master -h 0.0.0.0
     hostname: master
     environment:
-      MASTER: spark://master:7077
-      SPARK_CONF_DIR: /conf
-      SPARK_PUBLIC_DNS: ${EXTERNAL_IP}
+      - SPARK_DRIVER_MEMORY=16G
+      - SPARK_DRIVER_MAXRESULTSIZE=16G
+      - MASTER=spark://0.0.0.0:7077
+      - SPARK_CONF_DIR=/conf
+      - SPARK_PUBLIC_DNS=${EXTERNAL_IP}
+      - SPARK_MASTER_HOST=0.0.0.0
+      - SPARK_MASTER_PORT=7077
+    extra_hosts:
+      - ecs-python2:10.50.0.194
     ports:
-      - 4040:4040
-      - 6066:6066
+#      - 4040:4040
+#      - 6066:6066
       - 7077:7077
-      - 8080:8080
+      - 8088:8080
+    # networks:
+    #   spark_net:
+    #     ipv4_address: 172.16.238.10
+    #     ipv6_address: 2001:3984:3989::10
+    volumes:
+      - /home/cloud/dataset:/home/cloud/dataset
+    deploy:
+        placement:
+            constraints:
+              - node.role==manager
+
+  small-worker:
+    image: rhadi2005/spark-swarm:3.1.2
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
+    hostname: small-worker
+    environment:
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=512m
+      # - SPARK_EXECUTOR_MEMORY=16G # this should be specified by the application
+      - SPARK_CONF_DIR=/conf
+      - SPARK_PUBLIC_DNS=${EXTERNAL_IP}
+      - SPARK_MASTER_HOST=master
+      - SPARK_MASTER_PORT=7077
+    extra_hosts:
+      - ecs-python2:10.50.0.194
+    ports:
+      - 8082:8081
+    deploy:
+      replicas: 2
+    depends_on:
+      - master
+    volumes:
+      - /home/cloud/dataset:/home/cloud/dataset
+    deploy:
+        placement:
+            constraints:
+              - node.role==manager
 
   worker:
     image: rhadi2005/spark-swarm:3.1.2
     command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
     hostname: worker
     environment:
-      SPARK_CONF_DIR: /conf
-      SPARK_WORKER_CORES: 2
-      SPARK_WORKER_MEMORY: 1g
-      SPARK_PUBLIC_DNS: ${EXTERNAL_IP}
-    depends_on:
-      - master
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=16G
+      # - SPARK_WORKER_MEMORY=512m
+      # - SPARK_EXECUTOR_MEMORY=16G # this should be specified by the application
+      - SPARK_CONF_DIR=/conf
+      - SPARK_PUBLIC_DNS=${EXTERNAL_IP}
+      - SPARK_MASTER_HOST=master
+      - SPARK_MASTER_PORT=7077
+    extra_hosts:
+      - ecs-python2:10.50.0.194
     ports:
       - 8081:8081
+    deploy:
+      replicas: 1
+    depends_on:
+      - master
+    volumes:
+      - /home/cloud/dataset:/home/cloud/dataset
+    deploy:
+        placement:
+            constraints:
+              - node.role==worker
+
+# networks:
+#   spark_ingress:
+#     ingress:
+#   spark_net:
+#     ipam:
+#       driver: default
+#       config:
+#         - subnet: "172.16.238.0/24"
+#         - subnet: "2001:3984:3989::/64"
+

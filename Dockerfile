@@ -1,6 +1,12 @@
 #FROM debian:jessie
 FROM debian:bullseye
 
+# command to build the container image & upload to docker hub
+#docker build -t rhadi2005/spark-swarm:3.1.2 .
+#docker login -u rhadi2005
+#docker push rhadi2005/spark-swarm:3.1.2
+
+
 RUN apt-get update && \
     apt-get upgrade -y
 
@@ -37,7 +43,8 @@ ARG JAVA_MAJOR_VERSION=8
 #ARG JAVA_UPDATE_VERSION=131
 ARG JAVA_UPDATE_VERSION=351
 ARG JAVA_BUILD_NUMBER=11
-ENV JAVA_HOME /usr/jdk1.${JAVA_MAJOR_VERSION}.0_${JAVA_UPDATE_VERSION}
+#ENV JAVA_HOME /usr/jdk1.${JAVA_MAJOR_VERSION}.0_${JAVA_UPDATE_VERSION}
+ENV JAVA_HOME /usr/jre1.${JAVA_MAJOR_VERSION}.0_${JAVA_UPDATE_VERSION}
 
 ENV PATH $PATH:$JAVA_HOME/bin
 # RUN curl -sL --retry 3 --insecure \

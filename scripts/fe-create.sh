@@ -21,7 +21,7 @@ echo "Initializing Swarm mode..."
 docker swarm init --advertise-addr $(hostname -i)
 
 
-echo "Adding the nodes to the Swarm..."
+echo "Token to add nodes to the Swarm..."
 
 #TOKEN=`docker-machine ssh node-1 docker swarm join-token worker | grep token | awk '{ print $5 }'`
 TOKEN=`docker swarm join-token worker | grep token | awk '{ print $5 }'`
@@ -48,3 +48,7 @@ export NODE=$(docker service ps --format "{{.Node}}" rf-bench_master)
 
 #docker-machine ip $NODE
 nslookup $NODE
+
+echo
+docker node ls
+docker stack services rf-bench
