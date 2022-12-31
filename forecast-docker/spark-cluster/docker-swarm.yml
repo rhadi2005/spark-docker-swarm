@@ -23,8 +23,10 @@ services:
     extra_hosts:
       - ecs-python2:10.50.0.194
       - ecs-python:10.50.0.8
+      - ecs-rapids:10.50.0.164
     ports:
       - 8888:8888
+      - 4040:4040
     networks:
       overlay-net:
         ipv4_address: 172.16.238.10
@@ -43,6 +45,7 @@ services:
     extra_hosts:
       - ecs-python2:10.50.0.194
       - ecs-python:10.50.0.8
+      - ecs-rapids:10.50.0.164
     ports:
       - 8088:8088/tcp 
       - 7077:7077/tcp 
@@ -66,6 +69,39 @@ services:
     #     placement:
     #         constraints:
     #           - node.role==manager
+
+  small_worker:
+    image: rhadi2005/forecast:latest
+    hostname: small_worker
+    extra_hosts:
+      - ecs-python2:10.50.0.194
+      - ecs-python:10.50.0.8
+      - ecs-rapids:10.50.0.164
+    ports:
+      - 8081:8081/tcp 
+    networks:
+      overlay-net:
+        ipv4_address: 172.16.238.10
+        ipv6_address: 2001:3984:3989::10
+    environment:
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=512m
+      - SPARK_NO_DAEMONIZE=true 
+      # - SPARK_CONF_DIR=/conf
+      # - SPARK_EXECUTOR_MEMORY=16G # this should be specified by the application
+      # - SPARK_PUBLIC_DNS=${EXTERNAL_IP}
+    volumes:
+      - /home/cloud/dataset:/home/forecast/dataset
+    user: root
+    #command: ["pwd", "&& bash", "scripts/start-spark.sh"]
+    #command: 'bash $SPARK_HOME/sbin/start-worker.sh xxx'
+    command: ["bash", "/opt/spark-3.1.2/sbin/start-slave.sh", "spark://${EXTERNAL_IP}:7077"]
+    deploy:
+        replicas: 1
+    #     placement:
+    #         constraints:
+    #           - node.role==manager
+
 
 networks:
   overlay-net:

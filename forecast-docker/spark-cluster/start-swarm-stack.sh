@@ -3,6 +3,8 @@
 #docker swarm leave --force
 #docker network rm cluster-net
 
+export EXTERNAL_IP=$(hostname -i)
+
 echo 
 echo "docker swarm init"
 
