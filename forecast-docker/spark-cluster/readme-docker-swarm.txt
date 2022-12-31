@@ -1,4 +1,8 @@
 
+#howto docker swarm
+https://computingforgeeks.com/how-to-install-docker-swarm-on-ubuntu/
+
+
 cd ${SPARK_HOME} && bin/spark-class org.apache.spark.deploy.master.Master -h 0.0.0.0
 cd ${SPARK_HOME} && bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
 
@@ -65,6 +69,25 @@ docker service  create \
   --mount type=volume,source=my-volume,destination=/path/in/container,volume-label="color=red",volume-label="shape=round" \
   --with-registry-auth \
   registry.example.com/acme/my_image:latest
+
+
+options:
+  -u, --user string                        Username or UID (format: <name|uid>[:<group|gid>])
+      --group list                         Set one or more supplementary user groups for the container
+  -w, --workdir string                     Working directory inside the container
+      --entrypoint command                 Overwrite the default ENTRYPOINT of the image
+  -e, --env list                           Set environment variables
+      --env-file list                      Read in a file of environment variables
+      --host list                          Set one or more custom host-to-IP mappings (host:ip)
+      --name string                        Service name
+      --hostname string                    Container hostname
+      --network network                    Network attachments
+
+      --replicas uint                      Number of tasks
+      --replicas-max-per-node uint         Maximum number of tasks per node (default 0 = unlimited)
+
+      --with-registry-auth                 Send registry authentication details to swarm agents
+      --generic-resource list              User defined resources
 
 
 You can narrow the kind of nodes your task can land on through the using the --generic-resource flag (if the nodes advertise these resources):

@@ -1,0 +1,76 @@
+version: '3.8'
+
+# command line to deploy docker swarm
+#docker stack deploy -c docker-swarm.yml spark
+#docker stack services spark
+#docker stack rm spark
+
+# command to build the container image & upload to docker hub
+#docker build -t rhadi2005/forecast:latest .
+#docker login -u rhadi2005
+#docker push rhadi2005/forecast:latest
+
+services:
+
+  jupyter:
+    image: rhadi2005/forecast:latest
+    #command: ["bash", "dataset/fallback.sh"]
+    # command: bash dataset/fallback.sh
+    command: jupyter-lab --allow-root --ip=0.0.0.0 --no-browser --NotebookApp.token= --NotebookApp.allow_origin=*
+    hostname: jupyter
+    environment:
+      - ENV_TEST=7077
+    extra_hosts:
+      - ecs-python2:10.50.0.194
+      - ecs-python:10.50.0.8
+    ports:
+      - 8888:8888
+    networks:
+      overlay-net:
+        ipv4_address: 172.16.238.10
+        ipv6_address: 2001:3984:3989::10
+    volumes:
+      - /home/cloud/dataset:/home/forecast/dataset
+    # deploy:
+    #     replicas: 1
+    #     placement:
+    #         constraints:
+    #           - node.role==manager
+
+  master:
+    image: rhadi2005/forecast:latest
+    hostname: master
+    extra_hosts:
+      - ecs-python2:10.50.0.194
+      - ecs-python:10.50.0.8
+    ports:
+      - 8088:8088/tcp 
+      - 7077:7077/tcp 
+    networks:
+      overlay-net:
+        ipv4_address: 172.16.238.10
+        ipv6_address: 2001:3984:3989::10
+    environment:
+      - SPARK_NO_DAEMONIZE=true 
+      - SPARK_MASTER_HOST=0.0.0.0 
+      - SPARK_MASTER_PORT=7077 
+      - SPARK_MASTER_WEBUI_PORT=8088 
+    volumes:
+      - /home/cloud/dataset:/home/forecast/dataset
+    user: root
+    command: ["pwd", "&& bash", "scripts/start-spark.sh"]
+    #command: 'bash $SPARK_HOME/sbin/start-master.sh'
+    #command: ["bash", "$SPARK_HOME/sbin/start-master.sh"]
+    # deploy:
+    #     replicas: 1
+    #     placement:
+    #         constraints:
+    #           - node.role==manager
+
+networks:
+  overlay-net:
+    driver: overlay
+    ipam:
+      config:
+        - subnet: "172.16.238.0/24"
+        - subnet: "2001:3984:3989::/64"
