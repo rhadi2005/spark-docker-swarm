@@ -1,18 +1,8 @@
 #!/bin/bash
 
-#docker swarm leave --force
-#docker network rm cluster-net
+#docker network rm overlay-net
 
 export EXTERNAL_IP=$(hostname -i)
-
-echo 
-echo "docker swarm init"
-
-docker swarm init \
-    --advertise-addr $(hostname -i) \
-    --default-addr-pool 10.200.0.0/24
-
-docker swarm join-token manager
 
 
 # docker network create \
@@ -20,8 +10,12 @@ docker swarm join-token manager
 # 	--attachable \
 # 	--subnet=10.200.0.0/26 \
 # 	--gateway=10.200.0.1 \
-# 	cluster-net
+# 	overlay-net
 
+echo
+echo "docker pull rhadi2005/forecast:latest + debug"
+docker pull rhadi2005/forecast:latest
+docker pull rhadi2005/forecast:debug
 
 echo
 echo "docker stack deploy -c docker-swarm.yml spark"
@@ -35,7 +29,7 @@ docker stack services spark
 # docker login
 
 # docker network ls
-# docker network inspect cluster-net
+# docker network inspect overlay-net
 
 echo
 echo "docker node ls"

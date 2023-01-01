@@ -12,8 +12,8 @@ services:
     command: bin/spark-class org.apache.spark.deploy.master.Master -h 0.0.0.0
     hostname: master
     environment:
-      - SPARK_DRIVER_MEMORY=16G
-      - SPARK_DRIVER_MAXRESULTSIZE=16G
+      - SPARK_DRIVER_MEMORY=512m
+      - SPARK_DRIVER_MAXRESULTSIZE=512m
       - MASTER=spark://0.0.0.0:7077
       - SPARK_CONF_DIR=/conf
       - SPARK_PUBLIC_DNS=${EXTERNAL_IP}
@@ -32,10 +32,10 @@ services:
     #     ipv6_address: 2001:3984:3989::10
     volumes:
       - /home/cloud/dataset:/home/cloud/dataset
-    deploy:
-        placement:
-            constraints:
-              - node.role==manager
+    # deploy:
+    #     placement:
+    #         constraints:
+    #           - node.role==manager
 
   small-worker:
     image: rhadi2005/spark-swarm:3.1.2
@@ -53,16 +53,15 @@ services:
       - ecs-python2:10.50.0.194
     ports:
       - 8082:8081
-    deploy:
-      replicas: 2
     depends_on:
       - master
     volumes:
       - /home/cloud/dataset:/home/cloud/dataset
     deploy:
-        placement:
-            constraints:
-              - node.role==manager
+      replicas: 1
+      # placement:
+      #   constraints:
+      #     - node.role==manager
 
   worker:
     image: rhadi2005/spark-swarm:3.1.2
@@ -81,16 +80,15 @@ services:
       - ecs-python2:10.50.0.194
     ports:
       - 8081:8081
-    deploy:
-      replicas: 1
     depends_on:
       - master
     volumes:
       - /home/cloud/dataset:/home/cloud/dataset
     deploy:
-        placement:
-            constraints:
-              - node.role==worker
+      replicas: 1
+      # placement:
+      #   constraints:
+      #     - node.role==worker
 
 # networks:
 #   spark_ingress:

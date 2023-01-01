@@ -13,100 +13,96 @@ version: '3.8'
 services:
 
   jupyter:
-    image: rhadi2005/forecast:latest
-    #command: ["bash", "dataset/fallback.sh"]
-    # command: bash dataset/fallback.sh
-    command: jupyter-lab --allow-root --ip=0.0.0.0 --no-browser --NotebookApp.token= --NotebookApp.allow_origin=*
+    image: rhadi2005/forecast:debug
     hostname: jupyter
     environment:
       - ENV_TEST=7077
     extra_hosts:
-      - ecs-python2:10.50.0.194
-      - ecs-python:10.50.0.8
-      - ecs-rapids:10.50.0.164
+      - ecs-python2=10.50.0.194
+      - ecs-python=10.50.0.8
+      - ecs-rapids=10.50.0.164
     ports:
       - 8888:8888
       - 4040:4040
     networks:
       overlay-net:
-        ipv4_address: 172.16.238.10
-        ipv6_address: 2001:3984:3989::10
+        ipv4_address: 100.200.2.3
+        ipv6_address: 2001:3984:3989::3
     volumes:
       - /home/cloud/dataset:/home/forecast/dataset
-    # deploy:
-    #     replicas: 1
-    #     placement:
-    #         constraints:
-    #           - node.role==manager
+    command: jupyter-lab --allow-root --ip=0.0.0.0 --no-browser --NotebookApp.token= --NotebookApp.allow_origin=*
+    deploy:
+        replicas: 1
+        placement:
+            constraints:
+              - node.role==manager
 
   master:
-    image: rhadi2005/forecast:latest
+    image: rhadi2005/forecast:debug
     hostname: master
     extra_hosts:
-      - ecs-python2:10.50.0.194
-      - ecs-python:10.50.0.8
-      - ecs-rapids:10.50.0.164
+      - ecs-python2=10.50.0.194
+      - ecs-python=10.50.0.8
+      - ecs-rapids=10.50.0.164
     ports:
       - 8088:8088/tcp 
       - 7077:7077/tcp 
     networks:
       overlay-net:
-        ipv4_address: 172.16.238.10
-        ipv6_address: 2001:3984:3989::10
+        ipv4_address: 100.200.2.2
+        ipv6_address: 2001:3984:3989::2
     environment:
-      - SPARK_NO_DAEMONIZE=true 
+      - SPARK_DRIVER_CORES=2
+      - SPARK_DRIVER_MEMORY=16G
+      - SPARK_DRIVER_MAXRESULTSIZE=16G
       - SPARK_MASTER_HOST=0.0.0.0 
       - SPARK_MASTER_PORT=7077 
-      - SPARK_MASTER_WEBUI_PORT=8088 
+      - SPARK_MASTER_WEBUI_PORT=8088
+      - SPARK_PUBLIC_DNS=${EXTERNAL_IP}
     volumes:
       - /home/cloud/dataset:/home/forecast/dataset
     user: root
-    command: ["pwd", "&& bash", "scripts/start-spark.sh"]
-    #command: 'bash $SPARK_HOME/sbin/start-master.sh'
-    #command: ["bash", "$SPARK_HOME/sbin/start-master.sh"]
-    # deploy:
-    #     replicas: 1
-    #     placement:
-    #         constraints:
-    #           - node.role==manager
+    command: ["bash", "scripts/start-spark.sh"]
+    deploy:
+        replicas: 1
+        placement:
+            constraints:
+              - node.role==manager
 
   small_worker:
-    image: rhadi2005/forecast:latest
+    image: rhadi2005/forecast:debug
     hostname: small_worker
     extra_hosts:
-      - ecs-python2:10.50.0.194
-      - ecs-python:10.50.0.8
-      - ecs-rapids:10.50.0.164
+      - ecs-python2=10.50.0.194
+      - ecs-python=10.50.0.8
+      - ecs-rapids=10.50.0.164
     ports:
       - 8081:8081/tcp 
     networks:
       overlay-net:
-        ipv4_address: 172.16.238.10
-        ipv6_address: 2001:3984:3989::10
+        ipv4_address: 100.200.2.5
+        ipv6_address: 2001:3984:3989::5
     environment:
       - SPARK_WORKER_CORES=1
       - SPARK_WORKER_MEMORY=512m
-      - SPARK_NO_DAEMONIZE=true 
-      # - SPARK_CONF_DIR=/conf
-      # - SPARK_EXECUTOR_MEMORY=16G # this should be specified by the application
-      # - SPARK_PUBLIC_DNS=${EXTERNAL_IP}
+      - SPARK_PUBLIC_DNS=${EXTERNAL_IP}
+      - SPARK_NO_DAEMONIZE=true
     volumes:
       - /home/cloud/dataset:/home/forecast/dataset
     user: root
-    #command: ["pwd", "&& bash", "scripts/start-spark.sh"]
-    #command: 'bash $SPARK_HOME/sbin/start-worker.sh xxx'
-    command: ["bash", "/opt/spark-3.1.2/sbin/start-slave.sh", "spark://${EXTERNAL_IP}:7077"]
+    command: ["bash", "scripts/start-worker.sh", "master:7077"]
     deploy:
         replicas: 1
-    #     placement:
-    #         constraints:
-    #           - node.role==manager
+        placement:
+            constraints:
+              - node.role==manager
 
 
 networks:
   overlay-net:
     driver: overlay
+    attachable: true
     ipam:
       config:
-        - subnet: "172.16.238.0/24"
+        - subnet: "100.200.2.0/24"
         - subnet: "2001:3984:3989::/64"

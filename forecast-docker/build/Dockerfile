@@ -1,6 +1,7 @@
 
 #container name : rhadi2005/forecast
 #build : docker build -f Dockerfile -t rhadi2005/forecast .
+#publish : docker push rhadi2005/forecast
 #run : nvidia-docker run -it --rm --hostname master rhadi2005/forecast bash
 
 #to push to docker hub registry
@@ -24,8 +25,9 @@ FROM rapidsai/rapidsai:22.06-cuda11.5-runtime-ubuntu20.04-py3.8
 #RUN export USER_UID=$(id -u) \
 #    && export USER_GID=$(id -g)
 
-ARG USERNAME=forecast
-ARG GRPNAME=forecast
+ARG USERNAME="forecast"
+ARG GRPNAME="forecast"
+ARG HOMEDIR="/home/${USERNAME}"
 ARG USER_UID=1002 
 ARG USER_GID=1003
 
@@ -92,23 +94,29 @@ ENV JAVA_HOME=/opt/conda/envs/rapids
 ENV SPARK_HOME=/opt/spark-3.1.2
 
 # copy nvidia-rapids-spark & cudf jar to container /root/.m2/repository
+# /root/.m2/repository is used in spark-submit.sh
+ADD lib/spark/rapids-4-spark_2.12-22.06.0.jar /root/.m2/repository/
 ADD lib/spark/rapids-4-spark-ml_2.12-22.08.0-SNAPSHOT.jar /root/.m2/repository/
-#ADD /home/cloud/dataset/lib/spark/cudf-22.06.0.jar /root/.m2/repository
 ADD lib/spark/cudf-22.06.0-cuda11.jar /root/.m2/repository
 
+# copy nvidia-rapids-spark & cudf jar to container ~/lib
+# ${HOMEDIR}/lib/spark is used in application (notebook and standalone) 
+ADD lib/spark/rapids-4-spark_2.12-22.06.0.jar ${HOMEDIR}/lib/spark/
+ADD lib/spark/rapids-4-spark-ml_2.12-22.08.0-SNAPSHOT.jar ${HOMEDIR}/lib/spark/
+ADD lib/spark/cudf-22.06.0-cuda11.jar ${HOMEDIR}/lib/spark/
+
+# TODO : this /opt/spark-3.1.2/spark-env.sh is not used by spark, to check
 # add spark env to conf
 # /opt/spark-3.1.2-bin-hadoop3.2/sbin
 ADD scripts/spark-env.sh /opt/spark-3.1.2/
 
-ADD scripts/start-spark.sh /home/${USERNAME}/scripts/
-ADD scripts/spark-submit.sh /home/${USERNAME}/scripts/
-ADD scripts/nvidia-gpu-driver-check.sh /home/${USERNAME}/scripts/
+ADD scripts/*.sh ${HOMEDIR}/scripts/
 
 # add docker container files
-ADD environment-for-docker.yml /home/${USERNAME}/
-ADD entrypoint.sh /home/${USERNAME}/
+ADD environment-for-docker.yml ${HOMEDIR}/
+ADD entrypoint.sh ${HOMEDIR}/
 
-RUN chown ${USERNAME}:${GRPNAME} -R /home/${USERNAME}
+RUN chown ${USERNAME}:${GRPNAME} -R ${HOMEDIR}
 
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}

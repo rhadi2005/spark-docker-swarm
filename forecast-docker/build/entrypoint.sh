@@ -24,6 +24,9 @@ echo "jupyter-lab --allow-root --ip=0.0.0.0 --no-browser --NotebookApp.token= --
 if [[ $# -eq 0 ]]; then
   exec "/bin/bash"
 else
-  exec "$@"
+  export CUSTOM_COMMAND="$@"
+  echo "running '${CUSTOM_COMMAND}'"
+  echo "${CUSTOM_COMMAND}"
+  eval "${CUSTOM_COMMAND}"
 fi
 

@@ -42,6 +42,8 @@ docker network ls
 
 export EXTERNAL_IP=$(hostname -i) && echo ${EXTERNAL_IP}
 
+docker stack deploy --compose-file docker-swarm.yml rf-bench 
+
 docker stack deploy --compose-file docker-swarm-gpu.yml rf-bench 
 docker stack services rf-bench
 

@@ -1,10 +1,10 @@
 #!/bin/bash
 
-nvidia-
+#nvidia-
 docker run -it --rm \
-    --mount type=bind,source="$(pwd)/../..",target=/rapids/notebooks/host \
+    --mount type=bind,source="$(pwd)/../..",target=/home/forecast/mnt \
     --hostname forecast \
     rhadi2005/forecast \
     ls
 
-    bash
+#    bash

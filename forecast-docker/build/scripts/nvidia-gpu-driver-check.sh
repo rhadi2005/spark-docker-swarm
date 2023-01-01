@@ -16,5 +16,10 @@ if [[ -z "${_LIBCUDA_FOUND}" || -z "${_DRIVER_FOUND}" ]]; then
   echo "   Use the NVIDIA Container Toolkit to start this container with GPU support; see"
   echo "   https://docs.nvidia.com/datacenter/cloud-native/ ."
   export NVIDIA_CPU_ONLY=1
+else
+  echo
+  echo "GREAT NEWS: The NVIDIA Driver is detected.  GPU functionality will be available."
+  echo "   Use the NVIDIA Container Toolkit to start this container with GPU support; see"
+  echo "   https://docs.nvidia.com/datacenter/cloud-native/ ."
 fi
 
