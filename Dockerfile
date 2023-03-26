@@ -53,7 +53,7 @@ ENV PATH $PATH:$JAVA_HOME/bin
 
 #hardcode url to download JRE Version 8 Update 351, 18 octobre 2022 
 RUN echo "JAVA_HOME=${JAVA_HOME}" && \
-    wget "https://javadl.oracle.com/webapps/download/AutoDL?BundleId=247127_10e8cce67c7843478f41411b7003171c" -O jre-8u351-linux-x64.tar.gz && \
+    wget --no-verbose -O jre-8u351-linux-x64.tar.gz "https://javadl.oracle.com/webapps/download/AutoDL?BundleId=247127_10e8cce67c7843478f41411b7003171c" && \
     gunzip jre-8u351-linux-x64.tar.gz && \
     tar xf jre-8u351-linux-x64.tar && \ 
     mv jre1.8.0_351 /usr/ && \
